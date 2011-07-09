@@ -1,1 +1,9 @@
 Please see http://jeffreysambells.com/iphone-os-static-library-template/
+
+
+added methods that would load directions based on address too
+
+example 
+DKWaypoint *sc = [DKWaypoint waypointWithAddress:@"Ontario Science Center"]; // Science Center
+	[sc setTitle:@"Ontario Science Center"];
+	[sc setDelegate:self];

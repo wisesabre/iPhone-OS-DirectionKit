@@ -56,7 +56,7 @@
 
 @property (nonatomic, assign) BOOL hideDetails;
 
-
++ (DKWaypoint *) waypointWithAddress:(NSString*) address;
 + (DKWaypoint *)waypointWithLatitude:(float)lat Longitude:(float)lng;
 
 - (MKAnnotationView *)pinViewForMap:(DKMapView *)map; 

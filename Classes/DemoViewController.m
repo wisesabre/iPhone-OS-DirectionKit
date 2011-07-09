@@ -42,7 +42,7 @@
 	[fy setTitle:@"Fort York"];
 	[fy setDelegate:self];
 
-	DKWaypoint *sc = [DKWaypoint waypointWithLatitude:43.716333f Longitude:-79.338734f]; // Science Center
+	DKWaypoint *sc = [DKWaypoint waypointWithAddress:@"Ontario Science Center"]; // Science Center
 	[sc setTitle:@"Ontario Science Center"];
 	[sc setDelegate:self];
 

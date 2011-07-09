@@ -26,6 +26,7 @@
 //
 
 #import "DKWaypoint.h"
+#import "CJSONDeserializer.h"
 
 int kDKWaypointPinCornerRadius = 5.0f;
 
@@ -53,6 +54,80 @@ int kDKWaypointPinDescenderWidth = 12;
 @synthesize hideDetails;
 
 @synthesize info;
+
++ (DKWaypoint *) waypointWithAddress:(NSString*) address{
+    
+    
+    NSString *path = [[NSString alloc] initWithFormat:@"http://maps.googleapis.com/maps/api/geocode/json?address=%@&sensor=true",
+                      address];
+    
+    NSMutableData *webData=nil;
+    NSError *WSerror;
+    NSURLResponse *WSresponse;
+    
+    NSString *server = [path stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+    NSURL *url = [NSURL URLWithString:server];
+    
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:url
+                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                   timeoutInterval:10.0];
+    
+    [req setHTTPMethod:@"POST"];
+    [req setTimeoutInterval:30];
+    
+    NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:req delegate:nil];
+    if (theConnection) {
+        webData = [[NSMutableData data] retain];
+    } else {
+        // Inform the user that the connection failed.
+        UIAlertView *infoAlert = [[UIAlertView alloc]
+                                  initWithTitle: @"Connection Problem"
+                                  message: @"Oops, this is embarassing, but we have a problem connecting to the server, please try again"
+                                  delegate:nil
+                                  cancelButtonTitle:@"OK"
+                                  otherButtonTitles:nil];
+        [infoAlert show];
+        [infoAlert release];
+    }
+    
+    webData = [[NSURLConnection sendSynchronousRequest:req
+                                     returningResponse:&WSresponse error:&WSerror] mutableCopy];
+    NSString *theJson = [[NSString alloc]
+                         initWithBytes: [webData mutableBytes]
+                         length:[webData length]
+                         encoding:NSUTF8StringEncoding];
+    //---shows the JSON---
+    NSLog(@"synchronized request result: %@",theJson);
+    
+    NSDictionary *results = [[CJSONDeserializer deserializer] deserializeAsDictionary:webData error:nil];
+    // Parse the JSON into an Object
+    
+    [theJson release];
+    
+    NSString *status = (NSString *)[results objectForKey:@"status"];
+    NSString *manualLat;
+    NSString *manualLng;
+    
+    if ([status isEqualToString:@"OK"]) {
+        manualLat = [[[[[results objectForKey:@"results"] objectAtIndex:0] objectForKey:@"geometry"] objectForKey:@"location"] objectForKey:@"lat"];
+        manualLng = [[[[[results objectForKey:@"results"] objectAtIndex:0] objectForKey:@"geometry"] objectForKey:@"location"] objectForKey:@"lng"];
+        DKWaypoint * wp = [[DKWaypoint alloc] init];
+        wp.coordinate = (CLLocationCoordinate2D) {[manualLat floatValue],[manualLng floatValue]};
+        return wp;
+    } else {
+        UIAlertView *infoAlert = [[UIAlertView alloc]
+                                  initWithTitle: @"Invalid Address"
+                                  message: @"Please type in a valid street address"
+                                  delegate:nil
+                                  cancelButtonTitle:@"OK"
+                                  otherButtonTitles:nil];
+        [infoAlert show];
+        [infoAlert release];
+        return nil;
+    }
+    
+    
+}
 
 + (DKWaypoint *)waypointWithLatitude:(float)lat Longitude:(float)lng;
 {
